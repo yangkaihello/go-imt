@@ -140,15 +140,18 @@ func OnlineUsers(params RouterParams) Protocol {
 		Unique string `json:"unique"`
 		Sex   	 string `json:"sex"`
 	}{}
-	for _,u := range ConstAddress.Get(ConstUsers.Get(MessageHeader.UserUnique)) {
-		if u.Unique == MessageHeader.UserUnique {
-			continue
-		}	//不用返回自己的用户组
-		AllUsers[string(u.Unique)] = struct {
-			Username string `json:"username"`
-			Unique   string `json:"unique"`
-			Sex   	 string `json:"sex"`
-		}{Username: u.Username, Unique: string(u.Unique), Sex:u.Sex}
+	var user = ConstUsers.Get(MessageHeader.UserUnique)
+	if user != nil {
+		for _,u := range ConstAddress.Get(user) {
+			if u.Unique == MessageHeader.UserUnique {
+				continue
+			}	//不用返回自己的用户组
+			AllUsers[string(u.Unique)] = struct {
+				Username string `json:"username"`
+				Unique   string `json:"unique"`
+				Sex   	 string `json:"sex"`
+			}{Username: u.Username, Unique: string(u.Unique), Sex:u.Sex}
+		}
 	}
 
 	var AllUsersString,_ = json.Marshal(AllUsers)
@@ -278,6 +281,7 @@ func SystemCtl(params RouterParams) Protocol {
 	switch MessageHeader.Data {
 	case "users": b,_ = json.Marshal(ConstUsers);break
 	case "both": b,_ = json.Marshal(ConstBothWay);break
+	case "address": b,_ = json.Marshal(ConstAddress);break
 	case "group": b,_ = json.Marshal(ConstGroups);break
 	case "channel": b = []byte{byte(len(*ConstMessageChannels))};break
 	case "goroutine": b,_ = json.Marshal(struct {
